@@ -285,8 +285,8 @@ export default {
           )
         }
         console.log('Received response:', response)
-        if (response && response.data) {
-          this.words = response.data
+        if (response && response.data && response.data.data) {
+          this.words = response.data.data
           console.log('Updated words:', this.words)
         } else {
           console.error('Invalid response format:', response)

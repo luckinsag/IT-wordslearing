@@ -226,8 +226,8 @@ export default {
           )
         }
         console.log('Received response:', response)
-        if (response && response.data) {
-          this.words = response.data
+        if (response && response.data && response.data.data) {
+          this.words = response.data.data
           this.currentIndex = 0
           console.log('Updated words:', this.words)
         } else {

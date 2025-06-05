@@ -23,6 +23,14 @@
             variant="outlined"
             class="mb-6"
           ></v-text-field>
+          <v-alert
+            v-if="error"
+            type="error"
+            class="mb-4"
+            dense
+          >
+            {{ error }}
+          </v-alert>
           <v-btn
             color="primary"
             block
@@ -44,17 +52,60 @@
 </template>
 
 <script>
+import userService from '@/api/userService'
+import userStore from '@/store/user'
+
 export default {
   name: 'Login',
   data: () => ({
     username: '',
     password: '',
-    showPassword: false
+    showPassword: false,
+    loading: false,
+    error: null
   }),
   methods: {
-    handleLogin() {
-      // TODO: 実装ログインロジック
-      console.log('Login attempt:', this.username, this.password)
+    async handleLogin() {
+      if (!this.username || !this.password) {
+        this.error = 'ユーザー名とパスワードを入力してください'
+        return
+      }
+
+      this.loading = true
+      this.error = null
+      try {
+        console.log('Attempting login with:', { username: this.username })
+        const response = await userService.login(this.username, this.password)
+        console.log('Login response:', response)
+        
+        if (response.data.code === 200) {
+          console.log('Login successful, user data:', response.data.data)
+          // 登录成功，保存用户信息到状态管理
+          userStore.setUser(response.data.data)
+          // 跳转到首页
+          this.$router.push('/')
+        } else {
+          console.error('Login failed:', response.data)
+          this.error = response.data.message || 'ログインに失敗しました'
+        }
+      } catch (error) {
+        console.error('Login error:', error)
+        if (error.response) {
+          // 服务器返回了错误响应
+          console.error('Server error response:', error.response)
+          this.error = error.response.data?.message || 'サーバーエラーが発生しました'
+        } else if (error.request) {
+          // 请求已发送但没有收到响应
+          console.error('No response received:', error.request)
+          this.error = 'サーバーに接続できません。後でもう一度お試しください。'
+        } else {
+          // 请求配置出错
+          console.error('Request error:', error.message)
+          this.error = 'リクエストエラーが発生しました'
+        }
+      } finally {
+        this.loading = false
+      }
     }
   }
 }

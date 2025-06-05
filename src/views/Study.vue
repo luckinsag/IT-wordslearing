@@ -9,7 +9,7 @@
             <v-select
               v-model="lessonRange.start"
               :items="lessonOptions"
-              label="选择课程"
+              label=""
               density="compact"
               hide-details
               style="width: 150px;"
@@ -19,7 +19,7 @@
             <v-select
               v-model="lessonRange.end"
               :items="lessonOptions"
-              label="选择课程"
+              label=""
               density="compact"
               hide-details
               style="width: 150px;"

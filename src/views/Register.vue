@@ -8,7 +8,7 @@
         <v-form @submit.prevent="handleRegister">
           <v-text-field
             v-model="username"
-            label="ユーザーネーム"
+            label="ユーザー名"
             prepend-inner-icon="mdi-account"
             variant="outlined"
             class="mb-4"
@@ -33,6 +33,14 @@
             variant="outlined"
             class="mb-6"
           ></v-text-field>
+          <v-alert
+            v-if="error"
+            type="error"
+            class="mb-4"
+            dense
+          >
+            {{ error }}
+          </v-alert>
           <v-btn
             color="primary"
             block
@@ -54,6 +62,8 @@
 </template>
 
 <script>
+import userService from '@/api/userService'
+
 export default {
   name: 'Register',
   data: () => ({
@@ -61,12 +71,47 @@ export default {
     password: '',
     confirmPassword: '',
     showPassword: false,
-    showConfirmPassword: false
+    showConfirmPassword: false,
+    loading: false,
+    error: null
   }),
   methods: {
-    handleRegister() {
-      // TODO: 実装登録ロジック
-      console.log('Register attempt:', this.username, this.password)
+    async handleRegister() {
+      if (this.password !== this.confirmPassword) {
+        this.error = 'パスワードが一致しません'
+        return
+      }
+
+      this.loading = true
+      this.error = null
+      try {
+        const response = await userService.register({
+          username: this.username,
+          password: this.password,
+          fontSize: 'm', // 默认字体大小
+          backgroundColor: 'w' // 默认背景颜色
+        })
+        if (response.data.code === 200) {
+          // 注册成功，跳转到登录页
+          this.$router.push('/login')
+        } else {
+          this.error = response.data.message || '登録に失敗しました'
+        }
+      } catch (error) {
+        console.error('Register error:', error)
+        if (error.response) {
+          // 服务器返回了错误响应
+          this.error = error.response.data?.message || 'サーバーエラーが発生しました'
+        } else if (error.request) {
+          // 请求已发送但没有收到响应
+          this.error = 'サーバーに接続できません。後でもう一度お試しください。'
+        } else {
+          // 请求配置出错
+          this.error = 'リクエストエラーが発生しました'
+        }
+      } finally {
+        this.loading = false
+      }
     }
   }
 }

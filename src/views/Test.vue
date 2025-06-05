@@ -8,7 +8,7 @@
             <v-select
               v-model="lessonRange.start"
               :items="lessonOptions"
-              label="レッスンを選択"
+              label=""
               density="compact"
               hide-details
               style="width: 150px;"
@@ -18,7 +18,7 @@
             <v-select
               v-model="lessonRange.end"
               :items="lessonOptions"
-              label="レッスンを選択"
+              label=""
               density="compact"
               hide-details
               style="width: 150px;"
@@ -197,7 +197,8 @@ export default {
       return this.currentQuestionIndex === 9
     },
     canStartTest() {
-      return this.words.length >= 10
+      console.log('Words length:', this.words.length)
+      return this.words && this.words.length >= 10
     }
   },
   watch: {
@@ -223,8 +224,10 @@ export default {
             this.lessonRange.end
           )
         }
+        console.log('Words response:', response)
         if (response && response.data) {
-          this.words = response.data
+          this.words = response.data.data || response.data
+          console.log('Fetched words:', this.words)
         }
       } catch (error) {
         console.error('Error fetching words:', error)
@@ -237,8 +240,14 @@ export default {
       }
     },
     startTest() {
+      console.log('Starting test with words:', this.words)
+      if (!this.words || this.words.length < 10) {
+        console.error('Not enough words available:', this.words?.length)
+        return
+      }
       // 随机选择10个单词
       this.testWords = this.getRandomWords(10)
+      console.log('Selected test words:', this.testWords)
       this.currentQuestionIndex = 0
       this.correctCount = 0
       this.userAnswers = [] // 重置用户答案
@@ -248,6 +257,10 @@ export default {
       this.showFeedback = false
     },
     getRandomWords(count) {
+      if (!this.words || this.words.length === 0) {
+        console.error('No words available for test')
+        return []
+      }
       const shuffled = [...this.words].sort(() => 0.5 - Math.random())
       return shuffled.slice(0, count)
     },
